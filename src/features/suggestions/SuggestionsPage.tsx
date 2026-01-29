@@ -3,21 +3,26 @@ import { useNavigate } from 'react-router-dom'
 import { Card } from '../../components/Card'
 import { Button } from '../../components/Button'
 import { CardSkeleton } from '../../components/Skeleton'
+import { ServingPrompt } from '../../components/ServingPrompt'
 import { usePantryStore } from '../../store/pantryStore'
 import { usePreferencesStore } from '../../store/preferencesStore'
 import { useSuggestionsStore } from '../../store/suggestionsStore'
 import { useShoppingStore } from '../../store/shoppingStore'
-import { getIngredientById } from '../../data/ingredients'
+import { getIngredientById, ingredients } from '../../data/ingredients'
+import { getConsumptionLevel } from '../../data/consumptionDefaults'
 import { fetchSuggestions } from '../../services/suggestions'
+import { inferNewState, type ServingSize } from '../../services/stateInference'
 import type { Suggestion } from '../../types'
 
 export function SuggestionsPage() {
   const navigate = useNavigate()
-  const { selectedIngredients } = usePantryStore()
+  const { selectedIngredients, pantryItems, updateState } = usePantryStore()
   const preferences = usePreferencesStore()
   const { suggestions, loading, error, setSuggestions, setLoading, setError } = useSuggestionsStore()
   const { addItems } = useShoppingStore()
   const [selectedRecipe, setSelectedRecipe] = useState<Suggestion | null>(null)
+  const [showServingPrompt, setShowServingPrompt] = useState(false)
+  const [completingRecipe, setCompletingRecipe] = useState<Suggestion | null>(null)
 
   const selectedNames = selectedIngredients
     .map(id => getIngredientById(id)?.nameZh)
@@ -66,6 +71,47 @@ export function SuggestionsPage() {
       category: '其他',
     }))
     addItems(items)
+  }
+
+  const handleMarkComplete = (recipe: Suggestion) => {
+    setCompletingRecipe(recipe)
+    setShowServingPrompt(true)
+  }
+
+  const handleServingConfirm = (servings: ServingSize) => {
+    if (!completingRecipe) return
+
+    // Update state for each matched ingredient in the pantry
+    for (const ingredientName of completingRecipe.matchedIngredients) {
+      // Find ingredient by Chinese name
+      const ingredient = ingredients.find(i => i.nameZh === ingredientName)
+      if (!ingredient) continue
+
+      // Check if it's in our pantry
+      const pantryItem = pantryItems.find(p => p.ingredientId === ingredient.id)
+      if (!pantryItem) continue
+
+      const currentState = pantryItem.state
+      const consumption = getConsumptionLevel(
+        ingredient.id,
+        ingredient.category,
+        completingRecipe.consumptionProfile
+      )
+      const newState = inferNewState(currentState, consumption, servings)
+
+      updateState(ingredient.id, newState)
+    }
+
+    // Clean up
+    setShowServingPrompt(false)
+    setCompletingRecipe(null)
+    setSelectedRecipe(null)
+  }
+
+  const handleServingSkip = () => {
+    setShowServingPrompt(false)
+    setCompletingRecipe(null)
+    setSelectedRecipe(null)
   }
 
   if (selectedIngredients.length === 0) {
@@ -171,6 +217,15 @@ export function SuggestionsPage() {
           suggestion={selectedRecipe}
           onClose={() => setSelectedRecipe(null)}
           onAddToShopping={() => handleAddToShopping(selectedRecipe)}
+          onMarkComplete={() => handleMarkComplete(selectedRecipe)}
+        />
+      )}
+
+      {/* Serving Size Prompt */}
+      {showServingPrompt && (
+        <ServingPrompt
+          onConfirm={handleServingConfirm}
+          onSkip={handleServingSkip}
         />
       )}
     </div>
@@ -227,10 +282,12 @@ function RecipeModal({
   suggestion,
   onClose,
   onAddToShopping,
+  onMarkComplete,
 }: {
   suggestion: Suggestion
   onClose: () => void
   onAddToShopping: () => void
+  onMarkComplete: () => void
 }) {
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-end" onClick={onClose}>
@@ -278,11 +335,16 @@ function RecipeModal({
           </ol>
         </section>
 
-        {suggestion.missingIngredients.length > 0 && (
-          <Button fullWidth onClick={onAddToShopping}>
-            🛒 加入缺的到清單
+        <div className="space-y-3">
+          <Button fullWidth onClick={onMarkComplete}>
+            ✅ 完成這道菜
           </Button>
-        )}
+          {suggestion.missingIngredients.length > 0 && (
+            <Button fullWidth variant="secondary" onClick={onAddToShopping}>
+              🛒 加入缺的到清單
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   )

@@ -12,7 +12,7 @@ const categoryOrder: Ingredient['category'][] = ['protein', 'vegetable', 'grain'
 export function PantryPage() {
   const [search, setSearch] = useState('')
   const navigate = useNavigate()
-  const { selectedIngredients, toggle, isSelected } = usePantryStore()
+  const { selectedIngredients, toggle, isSelected, getState } = usePantryStore()
 
   const grouped = getIngredientsByCategory()
   const searchResults = search ? searchIngredients(search) : null
@@ -54,6 +54,7 @@ export function PantryPage() {
                   label={ing.nameZh}
                   selected={isSelected(ing.id)}
                   onClick={() => toggle(ing.id)}
+                  state={getState(ing.id)}
                 />
               ))}
               {searchResults.length === 0 && (
@@ -77,6 +78,7 @@ export function PantryPage() {
                       label={ing.nameZh}
                       selected={isSelected(ing.id)}
                       onClick={() => toggle(ing.id)}
+                      state={getState(ing.id)}
                     />
                   ))}
                 </div>

@@ -5,10 +5,14 @@ export interface Ingredient {
   category: 'protein' | 'vegetable' | 'grain' | 'dairy' | 'seasoning' | 'other'
 }
 
+export type IngredientState = 'plenty' | 'some' | 'low' | 'empty' | 'unknown'
+
+export type ConsumptionLevel = 'low' | 'medium' | 'high'
+
 export interface PantryItem {
   ingredientId: string
-  quantity?: number
-  unit?: string
+  state: IngredientState
+  lastUpdatedAt: number
 }
 
 export interface Preferences {
@@ -28,6 +32,7 @@ export interface Suggestion {
   missingIngredients: string[]
   steps: string[]
   status: 'doable' | 'near-miss'
+  consumptionProfile?: Record<string, ConsumptionLevel>
 }
 
 export interface ShoppingItem {
