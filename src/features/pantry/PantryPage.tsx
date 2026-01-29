@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useShallow } from 'zustand/react/shallow'
 import { Chip } from '../../components/Chip'
 import { Button } from '../../components/Button'
 import { SearchInput } from '../../components/SearchInput'
@@ -12,7 +13,10 @@ const categoryOrder: Ingredient['category'][] = ['protein', 'vegetable', 'grain'
 export function PantryPage() {
   const [search, setSearch] = useState('')
   const navigate = useNavigate()
-  const { selectedIngredients, toggle, isSelected, getState } = usePantryStore()
+  const { toggle, isSelected, getState } = usePantryStore()
+  const selectedIngredients = usePantryStore(useShallow(state =>
+    state.pantryItems.map(item => item.ingredientId)
+  ))
 
   const grouped = getIngredientsByCategory()
   const searchResults = search ? searchIngredients(search) : null

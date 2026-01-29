@@ -12,8 +12,6 @@ interface PantryState {
   isSelected: (id: string) => boolean
   updateState: (ingredientId: string, state: IngredientState) => void
   getState: (ingredientId: string) => IngredientState
-  // For backward compatibility
-  selectedIngredients: string[]
 }
 
 // Migration: convert old format to new format
@@ -37,11 +35,6 @@ export const usePantryStore = create<PantryState>()(
   persist(
     (set, get) => ({
       pantryItems: [],
-
-      // Computed for backward compatibility
-      get selectedIngredients() {
-        return get().pantryItems.map((item) => item.ingredientId)
-      },
 
       toggle: (id) =>
         set((state) => {

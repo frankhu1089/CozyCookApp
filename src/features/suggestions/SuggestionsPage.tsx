@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useShallow } from 'zustand/react/shallow'
 import { Card } from '../../components/Card'
 import { Button } from '../../components/Button'
 import { CardSkeleton } from '../../components/Skeleton'
@@ -16,7 +17,10 @@ import type { Suggestion } from '../../types'
 
 export function SuggestionsPage() {
   const navigate = useNavigate()
-  const { selectedIngredients, pantryItems, updateState } = usePantryStore()
+  const { pantryItems, updateState } = usePantryStore()
+  const selectedIngredients = usePantryStore(useShallow(state =>
+    state.pantryItems.map(item => item.ingredientId)
+  ))
   const preferences = usePreferencesStore()
   const { suggestions, loading, error, setSuggestions, setLoading, setError } = useSuggestionsStore()
   const { addItems } = useShoppingStore()
