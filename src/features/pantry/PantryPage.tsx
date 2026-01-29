@@ -4,6 +4,7 @@ import { useShallow } from 'zustand/react/shallow'
 import { Chip } from '../../components/Chip'
 import { Button } from '../../components/Button'
 import { SearchInput } from '../../components/SearchInput'
+import { TomorrowSection } from '../../components/TomorrowSection'
 import { usePantryStore } from '../../store/pantryStore'
 import { getIngredientsByCategory, categoryLabels, searchIngredients, getIngredientById } from '../../data/ingredients'
 import type { Ingredient } from '../../types'
@@ -33,6 +34,11 @@ export function PantryPage() {
       <div className="px-4 pt-6 pb-4">
         <h1 className="text-2xl font-semibold mb-1">今晚想煮什麼？</h1>
         <p className="text-[var(--color-text-secondary)]">選擇冰箱裡的食材</p>
+      </div>
+
+      {/* Tomorrow Suggestions */}
+      <div className="px-4">
+        <TomorrowSection />
       </div>
 
       {/* Search */}

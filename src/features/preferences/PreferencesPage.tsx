@@ -1,4 +1,5 @@
 import { usePreferencesStore } from '../../store/preferencesStore'
+import { HouseholdSettings } from './HouseholdSettings'
 
 const cuisineOptions = [
   { value: 'CN', label: '中式' },
@@ -19,9 +20,11 @@ export function PreferencesPage() {
     cuisines,
     maxTime,
     dietFlags,
+    notificationsEnabled,
     setCuisines,
     setMaxTime,
     toggleDietFlag,
+    toggleNotifications,
   } = usePreferencesStore()
 
   const currentCuisine = cuisines[0] || 'mixed'
@@ -100,6 +103,43 @@ export function PreferencesPage() {
             </button>
           ))}
         </div>
+      </section>
+
+      {/* Notifications */}
+      <section className="mb-6">
+        <h2 className="text-sm font-medium text-[var(--color-text-secondary)] mb-3">
+          提醒通知
+        </h2>
+        <label className="flex items-center justify-between p-4 bg-[var(--color-surface)] rounded-xl cursor-pointer">
+          <div>
+            <span className="font-medium">每日建議提醒</span>
+            <p className="text-xs text-[var(--color-text-secondary)] mt-0.5">
+              早上提醒你今天可以煮什麼
+            </p>
+          </div>
+          <button
+            onClick={toggleNotifications}
+            className={`
+              relative w-12 h-6 rounded-full transition-colors
+              ${notificationsEnabled ? 'bg-[var(--color-primary)]' : 'bg-gray-300'}
+            `}
+          >
+            <span
+              className={`
+                absolute top-1 w-4 h-4 bg-white rounded-full transition-transform
+                ${notificationsEnabled ? 'left-7' : 'left-1'}
+              `}
+            />
+          </button>
+        </label>
+      </section>
+
+      {/* Household Sharing */}
+      <section className="mb-6">
+        <h2 className="text-sm font-medium text-[var(--color-text-secondary)] mb-3">
+          家庭共享
+        </h2>
+        <HouseholdSettings />
       </section>
 
       {/* Info */}

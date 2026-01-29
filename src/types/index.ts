@@ -20,6 +20,7 @@ export interface Preferences {
   maxTime: 15 | 30 | 60
   dietFlags: string[]
   excludedIngredients: string[]
+  notificationsEnabled?: boolean
 }
 
 export interface Suggestion {
@@ -41,4 +42,37 @@ export interface ShoppingItem {
   name: string
   category: string
   checked: boolean
+}
+
+// Stage 3: Recipe History
+export interface RecipeCompletion {
+  id: string
+  recipeId: string
+  recipeTitle: string
+  cookedAt: number
+  servings: '1-2' | '3-4'
+  ingredientsUsed: string[] // ingredientIds
+}
+
+// Stage 3: Tomorrow Suggestions
+export interface TomorrowSuggestion {
+  id: string
+  suggestion: Suggestion
+  reason: string
+  priority: 'high' | 'medium' | 'low'
+  generatedAt: number
+}
+
+// Stage 3: Household Sharing
+export interface Household {
+  id: string
+  name: string
+  members: HouseholdMember[]
+  createdAt: number
+}
+
+export interface HouseholdMember {
+  id: string
+  name: string
+  role: 'owner' | 'member'
 }

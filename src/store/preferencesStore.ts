@@ -8,6 +8,7 @@ interface PreferencesState extends Preferences {
   toggleDietFlag: (flag: string) => void
   addExcluded: (id: string) => void
   removeExcluded: (id: string) => void
+  toggleNotifications: () => void
 }
 
 export const usePreferencesStore = create<PreferencesState>()(
@@ -17,6 +18,7 @@ export const usePreferencesStore = create<PreferencesState>()(
       maxTime: 30,
       dietFlags: [],
       excludedIngredients: [],
+      notificationsEnabled: false,
       setCuisines: (cuisines) => set({ cuisines }),
       setMaxTime: (maxTime) => set({ maxTime }),
       toggleDietFlag: (flag) =>
@@ -34,6 +36,10 @@ export const usePreferencesStore = create<PreferencesState>()(
       removeExcluded: (id) =>
         set((state) => ({
           excludedIngredients: state.excludedIngredients.filter((i) => i !== id),
+        })),
+      toggleNotifications: () =>
+        set((state) => ({
+          notificationsEnabled: !state.notificationsEnabled,
         })),
     }),
     { name: 'preferences-storage' }

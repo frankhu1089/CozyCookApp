@@ -5,15 +5,24 @@ import { Card } from '../../components/Card'
 import { Button } from '../../components/Button'
 import { CardSkeleton } from '../../components/Skeleton'
 import { ServingPrompt } from '../../components/ServingPrompt'
+import { DeductionPrompt } from '../../components/DeductionPrompt'
 import { usePantryStore } from '../../store/pantryStore'
 import { usePreferencesStore } from '../../store/preferencesStore'
 import { useSuggestionsStore } from '../../store/suggestionsStore'
 import { useShoppingStore } from '../../store/shoppingStore'
+import { useRecipeHistoryStore } from '../../store/recipeHistoryStore'
 import { getIngredientById, ingredients } from '../../data/ingredients'
 import { getConsumptionLevel } from '../../data/consumptionDefaults'
 import { fetchSuggestions } from '../../services/suggestions'
 import { inferNewState, type ServingSize } from '../../services/stateInference'
-import type { Suggestion } from '../../types'
+import type { Suggestion, IngredientState } from '../../types'
+
+interface StateChange {
+  ingredientId: string
+  ingredientName: string
+  fromState: IngredientState
+  toState: IngredientState
+}
 
 export function SuggestionsPage() {
   const navigate = useNavigate()
@@ -24,9 +33,13 @@ export function SuggestionsPage() {
   const preferences = usePreferencesStore()
   const { suggestions, loading, error, setSuggestions, setLoading, setError } = useSuggestionsStore()
   const { addItems } = useShoppingStore()
+  const { addCompletion } = useRecipeHistoryStore()
   const [selectedRecipe, setSelectedRecipe] = useState<Suggestion | null>(null)
   const [showServingPrompt, setShowServingPrompt] = useState(false)
+  const [showDeductionPrompt, setShowDeductionPrompt] = useState(false)
   const [completingRecipe, setCompletingRecipe] = useState<Suggestion | null>(null)
+  const [pendingServings, setPendingServings] = useState<ServingSize | null>(null)
+  const [pendingChanges, setPendingChanges] = useState<StateChange[]>([])
 
   const selectedNames = selectedIngredients
     .map(id => getIngredientById(id)?.nameZh)
@@ -63,7 +76,7 @@ export function SuggestionsPage() {
     }
 
     loadSuggestions()
-  }, [selectedIngredients, preferences.cuisines, preferences.maxTime, preferences.dietFlags])
+  }, [selectedIngredients, preferences.cuisines, preferences.maxTime, preferences.dietFlags, setLoading, setError, setSuggestions])
 
   const doable = suggestions.filter(s => s.status === 'doable')
   const nearMiss = suggestions.filter(s => s.status === 'near-miss')
@@ -85,13 +98,13 @@ export function SuggestionsPage() {
   const handleServingConfirm = (servings: ServingSize) => {
     if (!completingRecipe) return
 
-    // Update state for each matched ingredient in the pantry
+    // Calculate proposed changes
+    const changes: StateChange[] = []
+
     for (const ingredientName of completingRecipe.matchedIngredients) {
-      // Find ingredient by Chinese name
       const ingredient = ingredients.find(i => i.nameZh === ingredientName)
       if (!ingredient) continue
 
-      // Check if it's in our pantry
       const pantryItem = pantryItems.find(p => p.ingredientId === ingredient.id)
       if (!pantryItem) continue
 
@@ -103,19 +116,70 @@ export function SuggestionsPage() {
       )
       const newState = inferNewState(currentState, consumption, servings)
 
-      updateState(ingredient.id, newState)
+      // Only add if state actually changes
+      if (newState !== currentState) {
+        changes.push({
+          ingredientId: ingredient.id,
+          ingredientName: ingredient.nameZh,
+          fromState: currentState,
+          toState: newState,
+        })
+      }
     }
 
-    // Clean up
+    // Store pending data and show deduction prompt
+    setPendingServings(servings)
+    setPendingChanges(changes)
     setShowServingPrompt(false)
-    setCompletingRecipe(null)
-    setSelectedRecipe(null)
+    setShowDeductionPrompt(true)
+  }
+
+  const handleDeductionConfirm = () => {
+    if (!completingRecipe || !pendingServings) return
+
+    // Apply all pending changes
+    for (const change of pendingChanges) {
+      updateState(change.ingredientId, change.toState)
+    }
+
+    // Record completion in history
+    addCompletion({
+      recipeId: completingRecipe.id,
+      recipeTitle: completingRecipe.title,
+      cookedAt: Date.now(),
+      servings: pendingServings,
+      ingredientsUsed: pendingChanges.map(c => c.ingredientId),
+    })
+
+    // Clean up
+    handleCleanup()
+  }
+
+  const handleDeductionSkip = () => {
+    // Record completion without updating states
+    if (completingRecipe && pendingServings) {
+      addCompletion({
+        recipeId: completingRecipe.id,
+        recipeTitle: completingRecipe.title,
+        cookedAt: Date.now(),
+        servings: pendingServings,
+        ingredientsUsed: [],
+      })
+    }
+    handleCleanup()
   }
 
   const handleServingSkip = () => {
+    handleCleanup()
+  }
+
+  const handleCleanup = () => {
     setShowServingPrompt(false)
+    setShowDeductionPrompt(false)
     setCompletingRecipe(null)
     setSelectedRecipe(null)
+    setPendingServings(null)
+    setPendingChanges([])
   }
 
   if (selectedIngredients.length === 0) {
@@ -230,6 +294,19 @@ export function SuggestionsPage() {
         <ServingPrompt
           onConfirm={handleServingConfirm}
           onSkip={handleServingSkip}
+        />
+      )}
+
+      {/* Deduction Prompt */}
+      {showDeductionPrompt && (
+        <DeductionPrompt
+          changes={pendingChanges.map(c => ({
+            ingredientName: c.ingredientName,
+            fromState: c.fromState,
+            toState: c.toState,
+          }))}
+          onConfirm={handleDeductionConfirm}
+          onSkip={handleDeductionSkip}
         />
       )}
     </div>

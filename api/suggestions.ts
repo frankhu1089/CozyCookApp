@@ -112,7 +112,8 @@ ${preferences.dietFlags.length > 0 ? `- 飲食限制：${preferences.dietFlags.j
 `
 }
 
-function getMockSuggestions(ingredients: string[], preferences: RequestBody['preferences']) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function getMockSuggestions(ingredients: string[], _preferences: RequestBody['preferences']) {
   const hasEgg = ingredients.some(i => i.includes('蛋'))
   const hasChicken = ingredients.some(i => i.includes('雞'))
   const hasVegetable = ingredients.some(i =>
