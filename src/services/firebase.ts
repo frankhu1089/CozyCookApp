@@ -13,17 +13,21 @@ import {
 } from 'firebase/firestore'
 import type { ShoppingItem, TomorrowSuggestion } from '../types'
 
-// Firebase configuration from environment
-const firebaseConfig = import.meta.env.VITE_FIREBASE_CONFIG
-  ? JSON.parse(import.meta.env.VITE_FIREBASE_CONFIG)
-  : null
-
 let app: FirebaseApp | null = null
 let db: Firestore | null = null
 
 export function initFirebase(): boolean {
-  if (!firebaseConfig) {
+  const configStr = import.meta.env.VITE_FIREBASE_CONFIG
+  if (!configStr) {
     console.warn('Firebase config not found. Sharing features disabled.')
+    return false
+  }
+
+  let firebaseConfig
+  try {
+    firebaseConfig = JSON.parse(configStr)
+  } catch (error) {
+    console.error('Invalid Firebase config JSON:', error)
     return false
   }
 

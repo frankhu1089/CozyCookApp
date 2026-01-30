@@ -58,12 +58,18 @@ export function SuggestionsPage() {
           .map(id => getIngredientById(id)?.nameZh)
           .filter((n): n is string => !!n)
 
+        // Convert excluded ingredient IDs to Chinese names
+        const excludedNames = preferences.excludedIngredients
+          .map(id => getIngredientById(id)?.nameZh)
+          .filter((n): n is string => !!n)
+
         const results = await fetchSuggestions({
           ingredients: ingredientNames,
           preferences: {
             cuisine: preferences.cuisines[0] || 'mixed',
             maxTime: preferences.maxTime,
             dietFlags: preferences.dietFlags,
+            excludedIngredients: excludedNames,
           },
         })
         setSuggestions(results)
@@ -76,17 +82,30 @@ export function SuggestionsPage() {
     }
 
     loadSuggestions()
-  }, [selectedIngredients, preferences.cuisines, preferences.maxTime, preferences.dietFlags, setLoading, setError, setSuggestions])
+  }, [selectedIngredients, preferences.cuisines, preferences.maxTime, preferences.dietFlags, preferences.excludedIngredients, setLoading, setError, setSuggestions])
 
   const doable = suggestions.filter(s => s.status === 'doable')
   const nearMiss = suggestions.filter(s => s.status === 'near-miss')
 
+  const categoryLabels: Record<string, string> = {
+    protein: '蛋白質',
+    vegetable: '蔬菜',
+    grain: '主食',
+    dairy: '乳製品',
+    seasoning: '調味料',
+    other: '其他',
+  }
+
   const handleAddToShopping = (suggestion: Suggestion) => {
-    const items = suggestion.missingIngredients.map(name => ({
-      ingredientId: name,
-      name,
-      category: '其他',
-    }))
+    const items = suggestion.missingIngredients.map(name => {
+      // Look up ingredient by Chinese name to get real ID and category
+      const found = ingredients.find(i => i.nameZh === name)
+      return {
+        ingredientId: found?.id || name,
+        name,
+        category: found ? categoryLabels[found.category] || '其他' : '其他',
+      }
+    })
     addItems(items)
   }
 

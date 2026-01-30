@@ -12,6 +12,8 @@ interface PantryState {
   isSelected: (id: string) => boolean
   updateState: (ingredientId: string, state: IngredientState) => void
   getState: (ingredientId: string) => IngredientState
+  // Batch restock: set multiple ingredients to 'plenty'
+  restockFromShopping: (ingredientIds: string[]) => void
 }
 
 // Migration: convert old format to new format
@@ -86,6 +88,27 @@ export const usePantryStore = create<PantryState>()(
         const item = get().pantryItems.find((item) => item.ingredientId === ingredientId)
         return item?.state ?? 'unknown'
       },
+
+      restockFromShopping: (ingredientIds) =>
+        set((state) => {
+          const now = Date.now()
+          // Update existing items to 'plenty', add new ones
+          const existingIds = new Set(state.pantryItems.map(i => i.ingredientId))
+          const updatedItems = state.pantryItems.map((item) =>
+            ingredientIds.includes(item.ingredientId)
+              ? { ...item, state: 'plenty' as IngredientState, lastUpdatedAt: now }
+              : item
+          )
+          // Add new items that weren't in pantry
+          const newItems = ingredientIds
+            .filter(id => !existingIds.has(id))
+            .map(id => ({
+              ingredientId: id,
+              state: 'plenty' as IngredientState,
+              lastUpdatedAt: now,
+            }))
+          return { pantryItems: [...updatedItems, ...newItems] }
+        }),
     }),
     {
       name: 'pantry-storage',

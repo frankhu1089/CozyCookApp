@@ -7,10 +7,14 @@ import { SuggestionsPage } from './features/suggestions/SuggestionsPage'
 import { ShoppingPage } from './features/shopping/ShoppingPage'
 import { useHouseholdStore } from './store/householdStore'
 import { useRecipeHistoryStore } from './store/recipeHistoryStore'
+import { useShoppingStore } from './store/shoppingStore'
 
 export default function App() {
   const initializeHousehold = useHouseholdStore((state) => state.initialize)
+  const household = useHouseholdStore((state) => state.household)
   const cleanupHistory = useRecipeHistoryStore((state) => state.cleanup)
+  const syncWithFirebase = useShoppingStore((state) => state.syncWithFirebase)
+  const stopSync = useShoppingStore((state) => state.stopSync)
 
   useEffect(() => {
     // Initialize Firebase for household sharing
@@ -18,6 +22,16 @@ export default function App() {
     // Cleanup old recipe history (30 days retention)
     cleanupHistory()
   }, [initializeHousehold, cleanupHistory])
+
+  // Sync shopping list when household changes
+  useEffect(() => {
+    if (household?.id) {
+      syncWithFirebase(household.id)
+    } else {
+      stopSync()
+    }
+    return () => stopSync()
+  }, [household?.id, syncWithFirebase, stopSync])
 
   return (
     <BrowserRouter>

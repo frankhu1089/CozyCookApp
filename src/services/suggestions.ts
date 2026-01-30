@@ -6,6 +6,7 @@ interface SuggestionsRequest {
     cuisine: 'CN' | 'JP' | 'mixed'
     maxTime: number
     dietFlags: string[]
+    excludedIngredients?: string[]
   }
 }
 
@@ -202,6 +203,17 @@ function getMockSuggestions(ingredients: string[], preferences: SuggestionsReque
   }
 
   filtered = filtered.filter(s => s.timeMinutes <= preferences.maxTime)
+
+  // Filter by excluded ingredients
+  const excluded = preferences.excludedIngredients || []
+  if (excluded.length > 0) {
+    filtered = filtered.filter(s => {
+      const allIngredients = [...s.matchedIngredients, ...s.missingIngredients]
+      return !allIngredients.some(ing =>
+        excluded.some(ex => ing.includes(ex) || ex.includes(ing))
+      )
+    })
+  }
 
   // Sort: doable first, then by time
   filtered.sort((a, b) => {

@@ -1,8 +1,10 @@
 import { useShoppingStore } from '../../store/shoppingStore'
+import { usePantryStore } from '../../store/pantryStore'
 import { Button } from '../../components/Button'
 
 export function ShoppingPage() {
   const { items, toggleItem, removeItem, clearChecked, clearAll } = useShoppingStore()
+  const restockFromShopping = usePantryStore((state) => state.restockFromShopping)
 
   const groupedItems = items.reduce((acc, item) => {
     const cat = item.category || '其他'
@@ -19,6 +21,17 @@ export function ShoppingPage() {
 
     navigator.clipboard.writeText(text || '清單是空的')
     alert('已複製到剪貼簿！')
+  }
+
+  const handleBought = () => {
+    const checkedIds = items
+      .filter(i => i.checked)
+      .map(i => i.ingredientId)
+
+    if (checkedIds.length > 0) {
+      restockFromShopping(checkedIds)
+      clearChecked()
+    }
   }
 
   if (items.length === 0) {
@@ -87,18 +100,25 @@ export function ShoppingPage() {
       {/* Actions */}
       <div className="flex gap-2 mt-6">
         <Button
-          variant="secondary"
+          variant="primary"
           fullWidth
+          onClick={handleBought}
+          disabled={!items.some(i => i.checked)}
+        >
+          ✅ 已買回
+        </Button>
+        <Button
+          variant="secondary"
           onClick={clearChecked}
           disabled={!items.some(i => i.checked)}
         >
-          🗑 清除已勾選
+          🗑
         </Button>
         <Button
           variant="ghost"
           onClick={clearAll}
         >
-          全部清除
+          全清
         </Button>
       </div>
     </div>

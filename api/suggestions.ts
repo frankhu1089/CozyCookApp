@@ -8,6 +8,7 @@ interface RequestBody {
     cuisine: 'CN' | 'JP' | 'mixed'
     maxTime: number
     dietFlags: string[]
+    excludedIngredients: string[]
   }
 }
 
@@ -83,6 +84,8 @@ function buildPrompt(ingredients: string[], preferences: RequestBody['preference
     mixed: '中式或日式',
   }
 
+  const excluded = preferences.excludedIngredients || []
+
   return `
 我有這些食材：${ingredients.join('、')}
 
@@ -90,8 +93,10 @@ function buildPrompt(ingredients: string[], preferences: RequestBody['preference
 - 料理風格：${cuisineMap[preferences.cuisine]}
 - 最長時間：${preferences.maxTime} 分鐘
 ${preferences.dietFlags.length > 0 ? `- 飲食限制：${preferences.dietFlags.join('、')}` : ''}
+${excluded.length > 0 ? `- 排除食材（絕對不要用）：${excluded.join('、')}` : ''}
 
 請推薦 3-5 道料理，優先推薦「立即可做」(status: doable) 的菜色，再推薦「只差一點」(status: near-miss) 的菜色。
+${excluded.length > 0 ? '重要：絕對不要推薦含有排除食材的料理！' : ''}
 
 回傳格式：
 {
@@ -112,8 +117,8 @@ ${preferences.dietFlags.length > 0 ? `- 飲食限制：${preferences.dietFlags.j
 `
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function getMockSuggestions(ingredients: string[], _preferences: RequestBody['preferences']) {
+function getMockSuggestions(ingredients: string[], preferences: RequestBody['preferences']) {
+  const excluded = preferences.excludedIngredients || []
   const hasEgg = ingredients.some(i => i.includes('蛋'))
   const hasChicken = ingredients.some(i => i.includes('雞'))
   const hasVegetable = ingredients.some(i =>
@@ -200,6 +205,16 @@ function getMockSuggestions(ingredients: string[], _preferences: RequestBody['pr
     ],
     status: 'doable' as const,
   })
+
+  // Filter out recipes that use excluded ingredients
+  if (excluded.length > 0) {
+    return suggestions.filter(s => {
+      const allIngredients = [...s.matchedIngredients, ...s.missingIngredients]
+      return !allIngredients.some(ing =>
+        excluded.some(ex => ing.includes(ex) || ex.includes(ing))
+      )
+    })
+  }
 
   return suggestions
 }
