@@ -219,9 +219,9 @@ export function SuggestionsPage() {
     <div className="px-4 pt-6 pb-20">
       {/* Header */}
       <div className="mb-4">
-        <h1 className="text-2xl font-semibold mb-1">根據你的食材...</h1>
+        <h1 className="text-2xl font-semibold mb-1">今天可以用掉</h1>
         <p className="text-sm text-[var(--color-text-secondary)] truncate">
-          ← {selectedNames}
+          {selectedNames}
         </p>
       </div>
 

@@ -32,8 +32,8 @@ export function PantryPage() {
     <div className="pb-32">
       {/* Header */}
       <div className="px-4 pt-6 pb-4">
-        <h1 className="text-2xl font-semibold mb-1">今晚想煮什麼？</h1>
-        <p className="text-[var(--color-text-secondary)]">選擇冰箱裡的食材</p>
+        <h1 className="text-2xl font-semibold mb-1">冰箱裡有什麼？</h1>
+        <p className="text-[var(--color-text-secondary)]">標記食材狀態，避免浪費</p>
       </div>
 
       {/* Tomorrow Suggestions */}
@@ -114,7 +114,7 @@ export function PantryPage() {
           onClick={handleSubmit}
           disabled={selectedIngredients.length === 0}
         >
-          🍳 找菜色
+          找可以做的菜 →
         </Button>
       </div>
     </div>
