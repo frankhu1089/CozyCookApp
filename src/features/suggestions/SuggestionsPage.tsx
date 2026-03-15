@@ -4,25 +4,16 @@ import { useShallow } from 'zustand/react/shallow'
 import { Card } from '../../components/Card'
 import { Button } from '../../components/Button'
 import { CardSkeleton } from '../../components/Skeleton'
-import { ServingPrompt } from '../../components/ServingPrompt'
-import { DeductionPrompt } from '../../components/DeductionPrompt'
+import { PostCookSheet, type StateChange } from '../../components/PostCookSheet'
 import { usePantryStore } from '../../store/pantryStore'
 import { usePreferencesStore } from '../../store/preferencesStore'
 import { useSuggestionsStore } from '../../store/suggestionsStore'
 import { useShoppingStore } from '../../store/shoppingStore'
 import { useRecipeHistoryStore } from '../../store/recipeHistoryStore'
 import { getIngredientById, ingredients } from '../../data/ingredients'
-import { getConsumptionLevel } from '../../data/consumptionDefaults'
 import { fetchSuggestions } from '../../services/suggestions'
-import { inferNewState, type ServingSize } from '../../services/stateInference'
-import type { Suggestion, IngredientState } from '../../types'
-
-interface StateChange {
-  ingredientId: string
-  ingredientName: string
-  fromState: IngredientState
-  toState: IngredientState
-}
+import type { ServingSize } from '../../services/stateInference'
+import type { Suggestion } from '../../types'
 
 export function SuggestionsPage() {
   const navigate = useNavigate()
@@ -35,11 +26,8 @@ export function SuggestionsPage() {
   const { addItems } = useShoppingStore()
   const { addCompletion } = useRecipeHistoryStore()
   const [selectedRecipe, setSelectedRecipe] = useState<Suggestion | null>(null)
-  const [showServingPrompt, setShowServingPrompt] = useState(false)
-  const [showDeductionPrompt, setShowDeductionPrompt] = useState(false)
   const [completingRecipe, setCompletingRecipe] = useState<Suggestion | null>(null)
-  const [pendingServings, setPendingServings] = useState<ServingSize | null>(null)
-  const [pendingChanges, setPendingChanges] = useState<StateChange[]>([])
+  const [showPostCookSheet, setShowPostCookSheet] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
 
   const selectedNames = selectedIngredients
@@ -122,96 +110,34 @@ export function SuggestionsPage() {
 
   const handleMarkComplete = (recipe: Suggestion) => {
     setCompletingRecipe(recipe)
-    setShowServingPrompt(true)
+    setShowPostCookSheet(true)
   }
 
-  const handleServingConfirm = (servings: ServingSize) => {
+  const handlePostCookConfirm = (servings: ServingSize, changes: StateChange[]) => {
     if (!completingRecipe) return
-
-    // Calculate proposed changes
-    const changes: StateChange[] = []
-
-    for (const ingredientName of completingRecipe.matchedIngredients) {
-      const ingredient = ingredients.find(i => i.nameZh === ingredientName)
-      if (!ingredient) continue
-
-      const pantryItem = pantryItems.find(p => p.ingredientId === ingredient.id)
-      if (!pantryItem) continue
-
-      const currentState = pantryItem.state
-      const consumption = getConsumptionLevel(
-        ingredient.id,
-        ingredient.category,
-        completingRecipe.consumptionProfile
-      )
-      const newState = inferNewState(currentState, consumption, servings)
-
-      // Only add if state actually changes
-      if (newState !== currentState) {
-        changes.push({
-          ingredientId: ingredient.id,
-          ingredientName: ingredient.nameZh,
-          fromState: currentState,
-          toState: newState,
-        })
-      }
-    }
-
-    // Store pending data and show deduction prompt
-    setPendingServings(servings)
-    setPendingChanges(changes)
-    setShowServingPrompt(false)
-    setShowDeductionPrompt(true)
-  }
-
-  const handleDeductionConfirm = () => {
-    if (!completingRecipe || !pendingServings) return
-
-    // Apply all pending changes
-    for (const change of pendingChanges) {
+    for (const change of changes) {
       updateState(change.ingredientId, change.toState)
     }
-
-    // Record completion in history
     addCompletion({
       recipeId: completingRecipe.id,
       recipeTitle: completingRecipe.title,
       cookedAt: Date.now(),
-      servings: pendingServings,
-      ingredientsUsed: pendingChanges.map(c => c.ingredientId),
+      servings,
+      ingredientsUsed: changes.map(c => c.ingredientId),
     })
-
-    // Clean up
     handleCleanup()
     setShowSuccess(true)
     setTimeout(() => setShowSuccess(false), 2000)
   }
 
-  const handleDeductionSkip = () => {
-    // Record completion without updating states
-    if (completingRecipe && pendingServings) {
-      addCompletion({
-        recipeId: completingRecipe.id,
-        recipeTitle: completingRecipe.title,
-        cookedAt: Date.now(),
-        servings: pendingServings,
-        ingredientsUsed: [],
-      })
-    }
-    handleCleanup()
-  }
-
-  const handleServingSkip = () => {
+  const handlePostCookSkip = () => {
     handleCleanup()
   }
 
   const handleCleanup = () => {
-    setShowServingPrompt(false)
-    setShowDeductionPrompt(false)
+    setShowPostCookSheet(false)
     setCompletingRecipe(null)
     setSelectedRecipe(null)
-    setPendingServings(null)
-    setPendingChanges([])
   }
 
   if (selectedIngredients.length === 0) {
@@ -323,24 +249,13 @@ export function SuggestionsPage() {
         />
       )}
 
-      {/* Serving Size Prompt */}
-      {showServingPrompt && (
-        <ServingPrompt
-          onConfirm={handleServingConfirm}
-          onSkip={handleServingSkip}
-        />
-      )}
-
-      {/* Deduction Prompt */}
-      {showDeductionPrompt && (
-        <DeductionPrompt
-          changes={pendingChanges.map(c => ({
-            ingredientName: c.ingredientName,
-            fromState: c.fromState,
-            toState: c.toState,
-          }))}
-          onConfirm={handleDeductionConfirm}
-          onSkip={handleDeductionSkip}
+      {/* Post-cook Sheet */}
+      {showPostCookSheet && completingRecipe && (
+        <PostCookSheet
+          recipe={completingRecipe}
+          pantryItems={pantryItems}
+          onConfirm={handlePostCookConfirm}
+          onSkip={handlePostCookSkip}
         />
       )}
 
