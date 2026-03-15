@@ -84,6 +84,16 @@ export function SuggestionsPage() {
     loadSuggestions()
   }, [selectedIngredients, preferences.cuisines, preferences.maxTime, preferences.dietFlags, preferences.excludedIngredients, setLoading, setError, setSuggestions])
 
+  const atRiskNames = new Set(
+    pantryItems
+      .filter(item => item.state === 'low' || item.state === 'empty' || item.urgent)
+      .map(item => {
+        const ing = ingredients.find(i => i.id === item.ingredientId)
+        return ing?.nameZh
+      })
+      .filter(Boolean) as string[]
+  )
+
   const doable = suggestions.filter(s => s.status === 'doable')
   const nearMiss = suggestions.filter(s => s.status === 'near-miss')
 
@@ -262,6 +272,7 @@ export function SuggestionsPage() {
                     key={s.id}
                     suggestion={s}
                     onSelect={() => setSelectedRecipe(s)}
+                    atRiskNames={atRiskNames}
                   />
                 ))}
               </div>
@@ -281,6 +292,7 @@ export function SuggestionsPage() {
                     suggestion={s}
                     onSelect={() => setSelectedRecipe(s)}
                     onAddToShopping={() => handleAddToShopping(s)}
+                    atRiskNames={atRiskNames}
                   />
                 ))}
               </div>
@@ -336,10 +348,12 @@ function SuggestionCard({
   suggestion,
   onSelect,
   onAddToShopping,
+  atRiskNames,
 }: {
   suggestion: Suggestion
   onSelect: () => void
   onAddToShopping?: () => void
+  atRiskNames?: Set<string>
 }) {
   return (
     <Card className="relative">
@@ -351,6 +365,14 @@ function SuggestionCard({
             suggestion.difficulty === 'medium' ? '中等' : '困難'
           }
         </p>
+        {(() => {
+          const usesAtRisk = suggestion.matchedIngredients.filter(ing => atRiskNames?.has(ing))
+          return usesAtRisk.length > 0 ? (
+            <p className="text-xs text-[var(--color-primary)] mb-2">
+              → 可以用掉：{usesAtRisk.join('、')}
+            </p>
+          ) : null
+        })()}
         <div className="flex flex-wrap gap-1 mb-2">
           {suggestion.matchedIngredients.slice(0, 4).map((ing) => (
             <span key={ing} className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700">

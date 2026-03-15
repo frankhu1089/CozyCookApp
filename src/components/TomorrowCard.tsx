@@ -6,25 +6,19 @@ interface TomorrowCardProps {
   onClick: () => void
 }
 
-const priorityStyles = {
-  high: 'border-l-4 border-l-orange-500',
-  medium: 'border-l-4 border-l-blue-500',
-  low: 'border-l-4 border-l-gray-300',
-}
-
 export function TomorrowCard({ suggestion, onClick }: TomorrowCardProps) {
-  const { suggestion: recipe, reason, priority } = suggestion
+  const { suggestion: recipe, reason } = suggestion
 
   return (
     <Card
-      className={`${priorityStyles[priority]} min-w-[200px]`}
+      className="min-w-[200px]"
       onClick={onClick}
     >
+      <p className="text-xs text-[var(--color-primary)] mb-1">{reason}</p>
       <h3 className="font-semibold mb-1 truncate">{recipe.title}</h3>
-      <p className="text-xs text-[var(--color-text-secondary)] mb-2">
+      <p className="text-xs text-[var(--color-text-secondary)]">
         {recipe.cuisine} • {recipe.timeMinutes}分鐘
       </p>
-      <p className="text-xs text-orange-600">{reason}</p>
     </Card>
   )
 }
