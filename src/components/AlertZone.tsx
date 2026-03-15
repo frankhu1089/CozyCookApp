@@ -10,7 +10,16 @@ export function AlertZone() {
     item => item.state === 'low' || item.state === 'empty'
   )
 
-  if (atRisk.length === 0) return null
+  if (atRisk.length === 0) {
+    if (pantryItems.length === 0) return null
+    return (
+      <div className="mx-4 mb-4 px-3 py-2">
+        <p className="text-sm text-[var(--color-text-secondary)]">
+          ✓ 冰箱狀態良好
+        </p>
+      </div>
+    )
+  }
 
   const names = atRisk
     .map(item => getIngredientById(item.ingredientId)?.nameZh)
