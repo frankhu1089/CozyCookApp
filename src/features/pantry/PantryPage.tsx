@@ -39,10 +39,14 @@ export function PantryPage() {
   const [search, setSearch] = useState('')
   const [now] = useState(() => Date.now())
   const navigate = useNavigate()
-  const { toggle, isSelected, getState, updateState, remove, downgradeState } = usePantryStore()
+  const { toggle, isSelected, getState, updateState, remove, downgradeState, isUrgent, setUrgent } = usePantryStore()
 
   const sortByUrgency = (items: Ingredient[]) =>
-    [...items].sort((a, b) => (urgencyOrder[getState(a.id)] ?? 4) - (urgencyOrder[getState(b.id)] ?? 4))
+    [...items].sort((a, b) => {
+      const scoreA = isUrgent(a.id) ? -1 : (urgencyOrder[getState(a.id)] ?? 4)
+      const scoreB = isUrgent(b.id) ? -1 : (urgencyOrder[getState(b.id)] ?? 4)
+      return scoreA - scoreB
+    })
 
   const selectedIngredients = usePantryStore(useShallow(state =>
     state.pantryItems.map(item => item.ingredientId)
@@ -122,6 +126,8 @@ export function PantryPage() {
                   onRemove={() => remove(ing.id)}
                   onDowngrade={() => downgradeState(ing.id)}
                   state={getState(ing.id)}
+                  urgent={isUrgent(ing.id)}
+                  onUrgentToggle={() => setUrgent(ing.id, !isUrgent(ing.id))}
                 />
               ))}
               {searchResults.length === 0 && (
@@ -149,6 +155,8 @@ export function PantryPage() {
                       onRemove={() => remove(ing.id)}
                       onDowngrade={() => downgradeState(ing.id)}
                       state={getState(ing.id)}
+                      urgent={isUrgent(ing.id)}
+                      onUrgentToggle={() => setUrgent(ing.id, !isUrgent(ing.id))}
                     />
                   ))}
                 </div>

@@ -32,6 +32,11 @@ export async function generateTomorrowSuggestions(
     }
   }
 
+  const urgentIngredients: string[] = pantryItems
+    .filter(item => item.urgent)
+    .map(item => getIngredientById(item.ingredientId)?.nameZh)
+    .filter((n): n is string => !!n)
+
   if (availableIngredients.length === 0) {
     return []
   }
@@ -51,6 +56,16 @@ export async function generateTomorrowSuggestions(
     let score = 0
     let reason = ''
     let priority: TomorrowSuggestion['priority'] = 'low'
+
+    // Priority 0: urgent (expiring soon) — highest priority
+    const usesUrgent = suggestion.matchedIngredients.filter((ing) =>
+      urgentIngredients.includes(ing)
+    )
+    if (usesUrgent.length > 0) {
+      score += 150 * usesUrgent.length
+      reason = `⚡ ${usesUrgent[0]}快過期了`
+      priority = 'high'
+    }
 
     // Priority 1: Uses low-state ingredients
     const usesLow = suggestion.matchedIngredients.filter((ing) =>

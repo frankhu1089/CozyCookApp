@@ -13,6 +13,7 @@ export interface PantryItem {
   ingredientId: string
   state: IngredientState
   lastUpdatedAt: number
+  urgent?: boolean
 }
 
 export interface Preferences {

@@ -9,6 +9,8 @@ interface ChipProps {
   onRemove?: () => void
   onDowngrade?: () => void
   state?: IngredientState
+  urgent?: boolean
+  onUrgentToggle?: () => void
 }
 
 const stateOptions: { value: IngredientState; label: string }[] = [
@@ -27,7 +29,7 @@ const stateInlineLabel: Record<IngredientState, string> = {
   unknown: '',
 }
 
-export function Chip({ label, selected = false, onClick, onStateChange, onRemove, onDowngrade, state }: ChipProps) {
+export function Chip({ label, selected = false, onClick, onStateChange, onRemove, onDowngrade, state, urgent, onUrgentToggle }: ChipProps) {
   const [pickerOpen, setPickerOpen] = useState(false)
   const wrapperRef = useRef<HTMLDivElement>(null)
 
@@ -76,6 +78,7 @@ export function Chip({ label, selected = false, onClick, onStateChange, onRemove
           }
         `}
       >
+        {urgent && <span className="mr-1">⚡</span>}
         {label}
         {inlineLabel && (
           <span className="ml-1.5 text-xs opacity-75">{inlineLabel}</span>
@@ -110,6 +113,13 @@ export function Chip({ label, selected = false, onClick, onStateChange, onRemove
             className="w-full text-left px-3 py-2 text-sm text-[var(--color-text-secondary)] hover:bg-gray-50"
           >
             ↓ 用了一些
+          </button>
+          <button
+            type="button"
+            onClick={() => { onUrgentToggle?.(); setPickerOpen(false) }}
+            className="w-full text-left px-3 py-2 text-sm text-[var(--color-text-secondary)] hover:bg-gray-50"
+          >
+            {urgent ? '✕ 取消快過期' : '⚡ 快過期'}
           </button>
           <div className="border-t border-gray-100" />
           <button

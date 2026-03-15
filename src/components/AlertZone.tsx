@@ -7,7 +7,7 @@ export function AlertZone() {
   const pantryItems = usePantryStore(state => state.pantryItems)
 
   const atRisk = pantryItems.filter(
-    item => item.state === 'low' || item.state === 'empty'
+    item => item.state === 'low' || item.state === 'empty' || item.urgent
   )
 
   if (atRisk.length === 0) {
