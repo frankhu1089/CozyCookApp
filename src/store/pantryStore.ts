@@ -14,6 +14,7 @@ interface PantryState {
   getState: (ingredientId: string) => IngredientState
   // Batch restock: set multiple ingredients to 'plenty'
   restockFromShopping: (ingredientIds: string[]) => void
+  downgradeState: (ingredientId: string) => void
 }
 
 // Migration: convert old format to new format
@@ -108,6 +109,24 @@ export const usePantryStore = create<PantryState>()(
               lastUpdatedAt: now,
             }))
           return { pantryItems: [...updatedItems, ...newItems] }
+        }),
+
+      downgradeState: (ingredientId) =>
+        set((state) => {
+          const downgrade: Record<string, IngredientState> = {
+            plenty: 'some',
+            some: 'low',
+            low: 'empty',
+            empty: 'empty',
+            unknown: 'low',
+          }
+          return {
+            pantryItems: state.pantryItems.map((item) =>
+              item.ingredientId === ingredientId
+                ? { ...item, state: downgrade[item.state] ?? 'low', lastUpdatedAt: Date.now() }
+                : item
+            ),
+          }
         }),
     }),
     {

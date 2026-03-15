@@ -7,6 +7,7 @@ interface ChipProps {
   onClick?: () => void
   onStateChange?: (state: IngredientState) => void
   onRemove?: () => void
+  onDowngrade?: () => void
   state?: IngredientState
 }
 
@@ -26,7 +27,7 @@ const stateInlineLabel: Record<IngredientState, string> = {
   unknown: '',
 }
 
-export function Chip({ label, selected = false, onClick, onStateChange, onRemove, state }: ChipProps) {
+export function Chip({ label, selected = false, onClick, onStateChange, onRemove, onDowngrade, state }: ChipProps) {
   const [pickerOpen, setPickerOpen] = useState(false)
   const wrapperRef = useRef<HTMLDivElement>(null)
 
@@ -102,6 +103,14 @@ export function Chip({ label, selected = false, onClick, onStateChange, onRemove
               {state === opt.value ? '✓ ' : ''}{opt.label}
             </button>
           ))}
+          <div className="border-t border-gray-100" />
+          <button
+            type="button"
+            onClick={() => { onDowngrade?.(); setPickerOpen(false) }}
+            className="w-full text-left px-3 py-2 text-sm text-[var(--color-text-secondary)] hover:bg-gray-50"
+          >
+            ↓ 用了一些
+          </button>
           <div className="border-t border-gray-100" />
           <button
             type="button"

@@ -39,7 +39,7 @@ export function PantryPage() {
   const [search, setSearch] = useState('')
   const [now] = useState(() => Date.now())
   const navigate = useNavigate()
-  const { toggle, isSelected, getState, updateState, remove } = usePantryStore()
+  const { toggle, isSelected, getState, updateState, remove, downgradeState } = usePantryStore()
 
   const sortByUrgency = (items: Ingredient[]) =>
     [...items].sort((a, b) => (urgencyOrder[getState(a.id)] ?? 4) - (urgencyOrder[getState(b.id)] ?? 4))
@@ -120,6 +120,7 @@ export function PantryPage() {
                   onClick={() => toggle(ing.id)}
                   onStateChange={(newState) => updateState(ing.id, newState)}
                   onRemove={() => remove(ing.id)}
+                  onDowngrade={() => downgradeState(ing.id)}
                   state={getState(ing.id)}
                 />
               ))}
@@ -146,6 +147,7 @@ export function PantryPage() {
                       onClick={() => toggle(ing.id)}
                       onStateChange={(newState) => updateState(ing.id, newState)}
                       onRemove={() => remove(ing.id)}
+                      onDowngrade={() => downgradeState(ing.id)}
                       state={getState(ing.id)}
                     />
                   ))}
