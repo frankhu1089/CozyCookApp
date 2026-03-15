@@ -130,10 +130,6 @@ export function SuggestionsPage() {
     setTimeout(() => setShowSuccess(false), 2000)
   }
 
-  const handlePostCookSkip = () => {
-    handleCleanup()
-  }
-
   const handleCleanup = () => {
     setShowPostCookSheet(false)
     setCompletingRecipe(null)
@@ -255,7 +251,7 @@ export function SuggestionsPage() {
           recipe={completingRecipe}
           pantryItems={pantryItems}
           onConfirm={handlePostCookConfirm}
-          onSkip={handlePostCookSkip}
+          onSkip={handleCleanup}
         />
       )}
 
