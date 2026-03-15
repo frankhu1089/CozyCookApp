@@ -5,19 +5,45 @@ import { Chip } from '../../components/Chip'
 import { Button } from '../../components/Button'
 import { SearchInput } from '../../components/SearchInput'
 import { TomorrowSection } from '../../components/TomorrowSection'
+import { AlertZone } from '../../components/AlertZone'
 import { usePantryStore } from '../../store/pantryStore'
 import { getIngredientsByCategory, categoryLabels, searchIngredients, getIngredientById } from '../../data/ingredients'
 import type { Ingredient } from '../../types'
 
 const categoryOrder: Ingredient['category'][] = ['protein', 'vegetable', 'grain', 'seasoning', 'dairy', 'other']
 
+const urgencyOrder: Record<string, number> = {
+  low: 0,
+  empty: 1,
+  some: 2,
+  plenty: 3,
+  unknown: 4,
+}
+
+type PantryItem = { ingredientId: string; lastUpdatedAt: number }
+
+function getStalenessText(items: PantryItem[], now: number): string | null {
+  if (items.length === 0) return null
+  const latestUpdate = Math.max(...items.map(i => i.lastUpdatedAt))
+  const diffDays = Math.floor((now - latestUpdate) / (1000 * 60 * 60 * 24))
+  if (diffDays === 0) return '今天更新'
+  if (diffDays === 1) return '昨天更新'
+  return `${diffDays} 天前更新`
+}
+
 export function PantryPage() {
   const [search, setSearch] = useState('')
+  const [now] = useState(() => Date.now())
   const navigate = useNavigate()
-  const { toggle, isSelected, getState } = usePantryStore()
+  const { toggle, isSelected, getState, updateState, remove } = usePantryStore()
+
+  const sortByUrgency = (items: Ingredient[]) =>
+    [...items].sort((a, b) => (urgencyOrder[getState(a.id)] ?? 4) - (urgencyOrder[getState(b.id)] ?? 4))
+
   const selectedIngredients = usePantryStore(useShallow(state =>
     state.pantryItems.map(item => item.ingredientId)
   ))
+  const pantryItems = usePantryStore(state => state.pantryItems)
 
   const grouped = getIngredientsByCategory()
   const searchResults = search ? searchIngredients(search) : null
@@ -32,9 +58,28 @@ export function PantryPage() {
     <div className="pb-32">
       {/* Header */}
       <div className="px-4 pt-6 pb-4">
-        <h1 className="text-2xl font-semibold mb-1">今晚想煮什麼？</h1>
-        <p className="text-[var(--color-text-secondary)]">選擇冰箱裡的食材</p>
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold mb-1">冰箱裡有什麼？</h1>
+            <p className="text-[var(--color-text-secondary)]">標記食材狀態，避免浪費</p>
+            {pantryItems.length > 0 && (
+              <p className="text-xs text-[var(--color-text-secondary)] mt-1 font-mono">
+                {getStalenessText(pantryItems, now)}
+              </p>
+            )}
+          </div>
+          <button
+            onClick={() => navigate('/preferences')}
+            className="p-2 text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+            aria-label="設定"
+          >
+            ⚙
+          </button>
+        </div>
       </div>
+
+      {/* Alert Zone */}
+      <AlertZone />
 
       {/* Tomorrow Suggestions */}
       <div className="px-4">
@@ -58,12 +103,14 @@ export function PantryPage() {
               搜尋結果 ({searchResults.length})
             </h2>
             <div className="flex flex-wrap gap-2">
-              {searchResults.map((ing) => (
+              {sortByUrgency(searchResults).map((ing) => (
                 <Chip
                   key={ing.id}
                   label={ing.nameZh}
                   selected={isSelected(ing.id)}
                   onClick={() => toggle(ing.id)}
+                  onStateChange={(newState) => updateState(ing.id, newState)}
+                  onRemove={() => remove(ing.id)}
                   state={getState(ing.id)}
                 />
               ))}
@@ -82,16 +129,23 @@ export function PantryPage() {
                   {categoryLabels[cat]}
                 </h2>
                 <div className="flex flex-wrap gap-2">
-                  {items.map((ing) => (
+                  {sortByUrgency(items).map((ing) => (
                     <Chip
                       key={ing.id}
                       label={ing.nameZh}
                       selected={isSelected(ing.id)}
                       onClick={() => toggle(ing.id)}
+                      onStateChange={(newState) => updateState(ing.id, newState)}
+                      onRemove={() => remove(ing.id)}
                       state={getState(ing.id)}
                     />
                   ))}
                 </div>
+                {sortByUrgency(items).some(ing => isSelected(ing.id) && getState(ing.id) === 'unknown') && (
+                  <p className="text-xs text-[var(--color-text-secondary)] mt-1">
+                    點選已選的食材來設定狀態
+                  </p>
+                )}
               </div>
             )
           })
@@ -114,7 +168,7 @@ export function PantryPage() {
           onClick={handleSubmit}
           disabled={selectedIngredients.length === 0}
         >
-          🍳 找菜色
+          找可以做的菜 →
         </Button>
       </div>
     </div>

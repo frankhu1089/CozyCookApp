@@ -60,7 +60,7 @@ export function TomorrowSection() {
     return (
       <div className="mb-6">
         <h2 className="text-sm font-medium text-[var(--color-text-secondary)] mb-2">
-          正在想你明天可以煮什麼...
+          根據食材狀態推薦中...
         </h2>
         <div className="flex gap-3 overflow-x-auto pb-2">
           <div className="min-w-[200px]">
@@ -83,7 +83,7 @@ export function TomorrowSection() {
   return (
     <div className="mb-6">
       <h2 className="text-sm font-medium text-[var(--color-text-secondary)] mb-2">
-        明天你可以直接煮
+        今天就可以用掉
       </h2>
       <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4">
         {suggestions.map((s) => (
