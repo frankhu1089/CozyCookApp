@@ -131,3 +131,25 @@ App
 - Bottom nav: 3 tabs only
 - Post-cook sheet: fade-in allowed per motion spec
 - Prefer Unicode: ⚠ for warning, ✓ for success, ✕ for remove
+
+---
+
+## Implementation Status
+
+All tasks completed on 2026-03-15.
+
+| Task | Status | Commit | Notes |
+|---|---|---|---|
+| 1. Copy + framing | ✅ Done | 8eb615a | 5 string changes across PantryPage + SuggestionsPage |
+| 2. Nav restructure | ✅ Done | b6116bf | 3 tabs, gear icon in PantryPage header |
+| 3. Default state `some` | ✅ Done | 8be3fd8 | toggle + add actions updated |
+| 4. Staleness indicator | ✅ Done | a204ce3 | getStalenessText helper, font-mono |
+| 5. Urgency sort + labels | ✅ Done | 4fc1e09 | sortByUrgency, TomorrowSection reframed |
+| 6. Inline chip state picker | ✅ Done | 0cb22aa | Picker dropdown, onStateChange/onRemove props |
+| 7. Alert zone | ✅ Done | 79236c7 | AlertZone component, orange-50 tint |
+| 8. Unknown nudge + docs | ✅ Done | (this commit) | Per-category hint for unknown items |
+
+### Design decisions made during implementation
+- `rounded-full` removed from chips (intentional — design system specifies `border-radius: 0`, sharp corners)
+- AlertZone uses `bg-orange-50 border-orange-200` instead of `color-mix` (simpler, same visual effect)
+- `shadow-sm` used on chip picker dropdown (small exception to no-shadow rule — floating element needs visual separation)
