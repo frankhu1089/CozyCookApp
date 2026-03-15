@@ -18,6 +18,16 @@ export function PantryPage() {
   const selectedIngredients = usePantryStore(useShallow(state =>
     state.pantryItems.map(item => item.ingredientId)
   ))
+  const pantryItems = usePantryStore(state => state.pantryItems)
+
+  function getStalenessText(items: typeof pantryItems): string | null {
+    if (items.length === 0) return null
+    const latestUpdate = Math.max(...items.map(i => i.lastUpdatedAt))
+    const diffDays = Math.floor((Date.now() - latestUpdate) / (1000 * 60 * 60 * 24))
+    if (diffDays === 0) return '今天更新'
+    if (diffDays === 1) return '昨天更新'
+    return `${diffDays} 天前更新`
+  }
 
   const grouped = getIngredientsByCategory()
   const searchResults = search ? searchIngredients(search) : null
@@ -36,6 +46,11 @@ export function PantryPage() {
           <div>
             <h1 className="text-2xl font-semibold mb-1">冰箱裡有什麼？</h1>
             <p className="text-[var(--color-text-secondary)]">標記食材狀態，避免浪費</p>
+            {pantryItems.length > 0 && (
+              <p className="text-xs text-[var(--color-text-secondary)] mt-1 font-mono">
+                {getStalenessText(pantryItems)}
+              </p>
+            )}
           </div>
           <button
             onClick={() => navigate('/preferences')}
