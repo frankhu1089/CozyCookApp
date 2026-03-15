@@ -22,13 +22,17 @@ const urgencyOrder: Record<string, number> = {
 
 type PantryItem = { ingredientId: string; lastUpdatedAt: number }
 
-function getStalenessText(items: PantryItem[], now: number): string | null {
-  if (items.length === 0) return null
+function getFridgeStatus(items: PantryItem[], now: number): {
+  isStale: boolean
+  text: string | null
+} {
+  if (items.length === 0) return { isStale: false, text: null }
   const latestUpdate = Math.max(...items.map(i => i.lastUpdatedAt))
   const diffDays = Math.floor((now - latestUpdate) / (1000 * 60 * 60 * 24))
-  if (diffDays === 0) return '今天更新'
-  if (diffDays === 1) return '昨天更新'
-  return `${diffDays} 天前更新`
+  if (diffDays === 0) return { isStale: false, text: '今天更新' }
+  if (diffDays === 1) return { isStale: false, text: '昨天更新' }
+  if (diffDays < 4) return { isStale: false, text: `${diffDays} 天前更新` }
+  return { isStale: true, text: `已 ${diffDays} 天未更新` }
 }
 
 export function PantryPage() {
@@ -44,6 +48,7 @@ export function PantryPage() {
     state.pantryItems.map(item => item.ingredientId)
   ))
   const pantryItems = usePantryStore(state => state.pantryItems)
+  const fridgeStatus = getFridgeStatus(pantryItems, now)
 
   const grouped = getIngredientsByCategory()
   const searchResults = search ? searchIngredients(search) : null
@@ -60,11 +65,15 @@ export function PantryPage() {
       <div className="px-4 pt-6 pb-4">
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-2xl font-semibold mb-1">冰箱裡有什麼？</h1>
-            <p className="text-[var(--color-text-secondary)]">標記食材狀態，避免浪費</p>
-            {pantryItems.length > 0 && (
+            <h1 className="text-2xl font-semibold mb-1">
+              {fridgeStatus.isStale ? '該更新冰箱了' : '冰箱裡有什麼？'}
+            </h1>
+            <p className="text-[var(--color-text-secondary)]">
+              {fridgeStatus.isStale ? '點選食材更新狀態' : '標記食材狀態，避免浪費'}
+            </p>
+            {fridgeStatus.text && (
               <p className="text-xs text-[var(--color-text-secondary)] mt-1 font-mono">
-                {getStalenessText(pantryItems, now)}
+                {fridgeStatus.text}
               </p>
             )}
           </div>
