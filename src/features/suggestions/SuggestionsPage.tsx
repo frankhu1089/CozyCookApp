@@ -83,7 +83,13 @@ export function SuggestionsPage() {
       .filter(Boolean) as string[]
   )
 
-  const doable = suggestions.filter(s => s.status === 'doable')
+  const doable = suggestions
+    .filter(s => s.status === 'doable')
+    .sort((a, b) => {
+      const scoreA = a.matchedIngredients.filter(ing => atRiskNames.has(ing)).length
+      const scoreB = b.matchedIngredients.filter(ing => atRiskNames.has(ing)).length
+      return scoreB - scoreA
+    })
   const nearMiss = suggestions.filter(s => s.status === 'near-miss')
 
   const categoryLabels: Record<string, string> = {
