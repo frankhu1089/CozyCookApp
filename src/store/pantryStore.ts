@@ -113,7 +113,7 @@ export const usePantryStore = create<PantryState>()(
 
       downgradeState: (ingredientId) =>
         set((state) => {
-          const downgrade: Record<string, IngredientState> = {
+          const downgrade: Record<IngredientState, IngredientState> = {
             plenty: 'some',
             some: 'low',
             low: 'empty',
@@ -123,7 +123,7 @@ export const usePantryStore = create<PantryState>()(
           return {
             pantryItems: state.pantryItems.map((item) =>
               item.ingredientId === ingredientId
-                ? { ...item, state: downgrade[item.state] ?? 'low', lastUpdatedAt: Date.now() }
+                ? { ...item, state: downgrade[item.state], lastUpdatedAt: Date.now() }
                 : item
             ),
           }
