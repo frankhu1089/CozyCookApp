@@ -40,6 +40,7 @@ export function SuggestionsPage() {
   const [completingRecipe, setCompletingRecipe] = useState<Suggestion | null>(null)
   const [pendingServings, setPendingServings] = useState<ServingSize | null>(null)
   const [pendingChanges, setPendingChanges] = useState<StateChange[]>([])
+  const [showSuccess, setShowSuccess] = useState(false)
 
   const selectedNames = selectedIngredients
     .map(id => getIngredientById(id)?.nameZh)
@@ -182,6 +183,8 @@ export function SuggestionsPage() {
 
     // Clean up
     handleCleanup()
+    setShowSuccess(true)
+    setTimeout(() => setShowSuccess(false), 2000)
   }
 
   const handleDeductionSkip = () => {
@@ -339,6 +342,15 @@ export function SuggestionsPage() {
           onConfirm={handleDeductionConfirm}
           onSkip={handleDeductionSkip}
         />
+      )}
+
+      {/* Post-cook success flash */}
+      {showSuccess && (
+        <div className="fixed bottom-20 left-0 right-0 flex justify-center pointer-events-none z-50">
+          <div className="bg-[var(--color-text-primary)] text-white text-sm px-4 py-2 opacity-90">
+            冰箱已更新 ✓
+          </div>
+        </div>
       )}
     </div>
   )
