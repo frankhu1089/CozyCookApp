@@ -5,6 +5,7 @@ import { PantryPage } from './features/pantry/PantryPage'
 import { PreferencesPage } from './features/preferences/PreferencesPage'
 import { SuggestionsPage } from './features/suggestions/SuggestionsPage'
 import { ShoppingPage } from './features/shopping/ShoppingPage'
+import { FridgeScanPage } from './features/scan/FridgeScanPage'
 import { useHouseholdStore } from './store/householdStore'
 import { useRecipeHistoryStore } from './store/recipeHistoryStore'
 import { useShoppingStore } from './store/shoppingStore'
@@ -42,6 +43,7 @@ export default function App() {
             <Route path="/preferences" element={<PreferencesPage />} />
             <Route path="/suggestions" element={<SuggestionsPage />} />
             <Route path="/shopping" element={<ShoppingPage />} />
+            <Route path="/scan" element={<FridgeScanPage />} />
           </Routes>
         </main>
         <BottomNav />

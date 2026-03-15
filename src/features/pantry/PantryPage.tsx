@@ -81,13 +81,22 @@ export function PantryPage() {
               </p>
             )}
           </div>
-          <button
-            onClick={() => navigate('/preferences')}
-            className="p-2 text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
-            aria-label="設定"
-          >
-            ⚙
-          </button>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => navigate('/scan')}
+              className="p-2 text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+              aria-label="掃描冰箱"
+            >
+              📷
+            </button>
+            <button
+              onClick={() => navigate('/preferences')}
+              className="p-2 text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+              aria-label="設定"
+            >
+              ⚙
+            </button>
+          </div>
         </div>
       </div>
 
