@@ -20,8 +20,20 @@ const urgencyOrder: Record<string, number> = {
   unknown: 4,
 }
 
+type PantryItem = { ingredientId: string; lastUpdatedAt: number }
+
+function getStalenessText(items: PantryItem[], now: number): string | null {
+  if (items.length === 0) return null
+  const latestUpdate = Math.max(...items.map(i => i.lastUpdatedAt))
+  const diffDays = Math.floor((now - latestUpdate) / (1000 * 60 * 60 * 24))
+  if (diffDays === 0) return '今天更新'
+  if (diffDays === 1) return '昨天更新'
+  return `${diffDays} 天前更新`
+}
+
 export function PantryPage() {
   const [search, setSearch] = useState('')
+  const [now] = useState(() => Date.now())
   const navigate = useNavigate()
   const { toggle, isSelected, getState, updateState, remove } = usePantryStore()
 
@@ -32,15 +44,6 @@ export function PantryPage() {
     state.pantryItems.map(item => item.ingredientId)
   ))
   const pantryItems = usePantryStore(state => state.pantryItems)
-
-  function getStalenessText(items: typeof pantryItems): string | null {
-    if (items.length === 0) return null
-    const latestUpdate = Math.max(...items.map(i => i.lastUpdatedAt))
-    const diffDays = Math.floor((Date.now() - latestUpdate) / (1000 * 60 * 60 * 24))
-    if (diffDays === 0) return '今天更新'
-    if (diffDays === 1) return '昨天更新'
-    return `${diffDays} 天前更新`
-  }
 
   const grouped = getIngredientsByCategory()
   const searchResults = search ? searchIngredients(search) : null
@@ -61,7 +64,7 @@ export function PantryPage() {
             <p className="text-[var(--color-text-secondary)]">標記食材狀態，避免浪費</p>
             {pantryItems.length > 0 && (
               <p className="text-xs text-[var(--color-text-secondary)] mt-1 font-mono">
-                {getStalenessText(pantryItems)}
+                {getStalenessText(pantryItems, now)}
               </p>
             )}
           </div>
