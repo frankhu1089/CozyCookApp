@@ -5,6 +5,7 @@ import { Chip } from '../../components/Chip'
 import { Button } from '../../components/Button'
 import { SearchInput } from '../../components/SearchInput'
 import { TomorrowSection } from '../../components/TomorrowSection'
+import { AlertZone } from '../../components/AlertZone'
 import { usePantryStore } from '../../store/pantryStore'
 import { getIngredientsByCategory, categoryLabels, searchIngredients, getIngredientById } from '../../data/ingredients'
 import type { Ingredient } from '../../types'
@@ -73,6 +74,9 @@ export function PantryPage() {
           </button>
         </div>
       </div>
+
+      {/* Alert Zone */}
+      <AlertZone />
 
       {/* Tomorrow Suggestions */}
       <div className="px-4">
