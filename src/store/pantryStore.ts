@@ -49,7 +49,7 @@ export const usePantryStore = create<PantryState>()(
           return {
             pantryItems: [
               ...state.pantryItems,
-              { ingredientId: id, state: 'unknown', lastUpdatedAt: Date.now() },
+              { ingredientId: id, state: 'some', lastUpdatedAt: Date.now() },
             ],
           }
         }),
@@ -61,7 +61,7 @@ export const usePantryStore = create<PantryState>()(
           return {
             pantryItems: [
               ...state.pantryItems,
-              { ingredientId: id, state: 'unknown', lastUpdatedAt: Date.now() },
+              { ingredientId: id, state: 'some', lastUpdatedAt: Date.now() },
             ],
           }
         }),
