@@ -138,6 +138,11 @@ export function PantryPage() {
                     />
                   ))}
                 </div>
+                {sortByUrgency(items).some(ing => isSelected(ing.id) && getState(ing.id) === 'unknown') && (
+                  <p className="text-xs text-[var(--color-text-secondary)] mt-1">
+                    點選已選的食材來設定狀態
+                  </p>
+                )}
               </div>
             )
           })
