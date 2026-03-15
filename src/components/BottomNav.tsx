@@ -1,8 +1,7 @@
 import { NavLink } from 'react-router-dom'
 
 const tabs = [
-  { to: '/', label: '食材', icon: '🥬' },
-  { to: '/preferences', label: '偏好', icon: '⚙️' },
+  { to: '/', label: '冰箱', icon: '🥬' },
   { to: '/suggestions', label: '建議', icon: '🍳' },
   { to: '/shopping', label: '清單', icon: '🛒' },
 ]
