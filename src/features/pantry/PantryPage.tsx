@@ -22,7 +22,7 @@ const urgencyOrder: Record<string, number> = {
 export function PantryPage() {
   const [search, setSearch] = useState('')
   const navigate = useNavigate()
-  const { toggle, isSelected, getState } = usePantryStore()
+  const { toggle, isSelected, getState, updateState, remove } = usePantryStore()
 
   const sortByUrgency = (items: Ingredient[]) =>
     [...items].sort((a, b) => (urgencyOrder[getState(a.id)] ?? 4) - (urgencyOrder[getState(b.id)] ?? 4))
@@ -102,6 +102,8 @@ export function PantryPage() {
                   label={ing.nameZh}
                   selected={isSelected(ing.id)}
                   onClick={() => toggle(ing.id)}
+                  onStateChange={(newState) => updateState(ing.id, newState)}
+                  onRemove={() => remove(ing.id)}
                   state={getState(ing.id)}
                 />
               ))}
@@ -126,6 +128,8 @@ export function PantryPage() {
                       label={ing.nameZh}
                       selected={isSelected(ing.id)}
                       onClick={() => toggle(ing.id)}
+                      onStateChange={(newState) => updateState(ing.id, newState)}
+                      onRemove={() => remove(ing.id)}
                       state={getState(ing.id)}
                     />
                   ))}
