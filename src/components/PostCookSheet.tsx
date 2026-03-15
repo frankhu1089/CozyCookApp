@@ -30,14 +30,16 @@ const stateLabels: Record<IngredientState, string> = {
 export function PostCookSheet({ recipe, pantryItems, onConfirm, onSkip }: PostCookSheetProps) {
   const [servings, setServings] = useState<ServingSize>('1-2')
 
+  const { matchedIngredients, consumptionProfile } = recipe
+
   const changes = useMemo<StateChange[]>(() => {
     const result: StateChange[] = []
-    for (const ingredientName of recipe.matchedIngredients) {
+    for (const ingredientName of matchedIngredients) {
       const ingredient = ingredients.find(i => i.nameZh === ingredientName)
       if (!ingredient) continue
       const pantryItem = pantryItems.find(p => p.ingredientId === ingredient.id)
       if (!pantryItem) continue
-      const consumption = getConsumptionLevel(ingredient.id, ingredient.category, recipe.consumptionProfile)
+      const consumption = getConsumptionLevel(ingredient.id, ingredient.category, consumptionProfile)
       const newState = inferNewState(pantryItem.state, consumption, servings)
       if (newState !== pantryItem.state) {
         result.push({
@@ -49,7 +51,7 @@ export function PostCookSheet({ recipe, pantryItems, onConfirm, onSkip }: PostCo
       }
     }
     return result
-  }, [recipe, pantryItems, servings])
+  }, [matchedIngredients, consumptionProfile, pantryItems, servings])
 
   return (
     <div className="fixed inset-0 bg-black/50 z-[60] flex items-end" onClick={onSkip}>
@@ -71,7 +73,7 @@ export function PostCookSheet({ recipe, pantryItems, onConfirm, onSkip }: PostCo
               key={s}
               type="button"
               onClick={() => setServings(s)}
-              className={`flex-1 py-2 text-sm font-medium border ${
+              className={`flex-1 py-2 text-sm font-medium border transition-all active:scale-95 ${
                 servings === s
                   ? 'bg-[var(--color-primary)] text-white border-[var(--color-primary)]'
                   : 'text-[var(--color-text-primary)] border-gray-200'
