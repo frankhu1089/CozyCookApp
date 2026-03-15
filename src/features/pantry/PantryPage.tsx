@@ -11,10 +11,22 @@ import type { Ingredient } from '../../types'
 
 const categoryOrder: Ingredient['category'][] = ['protein', 'vegetable', 'grain', 'seasoning', 'dairy', 'other']
 
+const urgencyOrder: Record<string, number> = {
+  low: 0,
+  empty: 1,
+  some: 2,
+  plenty: 3,
+  unknown: 4,
+}
+
 export function PantryPage() {
   const [search, setSearch] = useState('')
   const navigate = useNavigate()
   const { toggle, isSelected, getState } = usePantryStore()
+
+  const sortByUrgency = (items: Ingredient[]) =>
+    [...items].sort((a, b) => (urgencyOrder[getState(a.id)] ?? 4) - (urgencyOrder[getState(b.id)] ?? 4))
+
   const selectedIngredients = usePantryStore(useShallow(state =>
     state.pantryItems.map(item => item.ingredientId)
   ))
@@ -84,7 +96,7 @@ export function PantryPage() {
               搜尋結果 ({searchResults.length})
             </h2>
             <div className="flex flex-wrap gap-2">
-              {searchResults.map((ing) => (
+              {sortByUrgency(searchResults).map((ing) => (
                 <Chip
                   key={ing.id}
                   label={ing.nameZh}
@@ -108,7 +120,7 @@ export function PantryPage() {
                   {categoryLabels[cat]}
                 </h2>
                 <div className="flex flex-wrap gap-2">
-                  {items.map((ing) => (
+                  {sortByUrgency(items).map((ing) => (
                     <Chip
                       key={ing.id}
                       label={ing.nameZh}
