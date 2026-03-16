@@ -1,6 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useShallow } from 'zustand/react/shallow'
 import { Card } from '../../components/Card'
 import { Button } from '../../components/Button'
 import { CardSkeleton } from '../../components/Skeleton'
@@ -18,9 +17,10 @@ import type { Suggestion } from '../../types'
 export function SuggestionsPage() {
   const navigate = useNavigate()
   const { pantryItems, updateState } = usePantryStore()
-  const selectedIngredients = usePantryStore(useShallow(state =>
-    state.pantryItems.map(item => item.ingredientId)
-  ))
+  const selectedIngredients = useMemo(
+    () => pantryItems.map(item => item.ingredientId),
+    [pantryItems]
+  )
   const preferences = usePreferencesStore()
   const { suggestions, loading, error, setSuggestions, setLoading, setError } = useSuggestionsStore()
   const { addItems } = useShoppingStore()
@@ -73,7 +73,7 @@ export function SuggestionsPage() {
     loadSuggestions()
   }, [selectedIngredients, preferences.cuisines, preferences.maxTime, preferences.dietFlags, preferences.excludedIngredients, setLoading, setError, setSuggestions])
 
-  const atRiskNames = new Set(
+  const atRiskNames = useMemo(() => new Set(
     pantryItems
       .filter(item => item.state === 'low' || item.state === 'empty' || item.urgent)
       .map(item => {
@@ -81,7 +81,7 @@ export function SuggestionsPage() {
         return ing?.nameZh
       })
       .filter(Boolean) as string[]
-  )
+  ), [pantryItems])
 
   const doable = suggestions
     .filter(s => s.status === 'doable')
