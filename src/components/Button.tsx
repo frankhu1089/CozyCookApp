@@ -12,7 +12,7 @@ export function Button({
   children,
   ...props
 }: ButtonProps) {
-  const base = 'font-semibold rounded-lg transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed'
+  const base = 'font-semibold rounded-none transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed'
 
   const variants = {
     primary: 'bg-[var(--color-primary)] text-white hover:opacity-90',
